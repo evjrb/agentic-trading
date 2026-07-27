@@ -1,1 +1,6 @@
 bot/logs/
+
+# Machine-local runtime flags — never commit. A tracked LIVE file means any
+# fresh clone is armed for real-money trading before anyone touches it.
+bot/LIVE
+bot/STOP

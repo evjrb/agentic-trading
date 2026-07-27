@@ -16,8 +16,10 @@
 #   touch bot/STOP                 # kill switch (halts entry AND exit)
 set -uo pipefail
 
-PROJ_DIR="/Users/jackbrown/robinhood-trading"
-BOT_DIR="$PROJ_DIR/bot"
+# Paths derive from this script's own location (bot/run.sh), so moving the
+# checkout doesn't silently break the run. pwd -P resolves symlinks.
+BOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+PROJ_DIR="$(dirname "$BOT_DIR")"
 LOG_DIR="$BOT_DIR/logs"
 STOP_FILE="$BOT_DIR/STOP"
 LIVE_FILE="$BOT_DIR/LIVE"
