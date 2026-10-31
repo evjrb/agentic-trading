@@ -3,6 +3,7 @@
 #
 # Task (arg 1):  entry (default) | exit
 #   entry = once at the open; Opus picks & buys per policy.md
+#           (regimes: dip-buy > fade [inverse ETF on a pumped meme/IPO] > momentum)
 #   exit  = intraday monitor; Haiku checks the open position and sells on
 #           take-profit/stop per exit-policy.md (never buys). Market-hours only.
 #
@@ -61,12 +62,14 @@ if [ -f "$LIVE_FILE" ]; then MODE="live"; else MODE="dry"; fi
 
 # --- Per-task config ---
 case "$TASK" in
-  entry) POLICY="$BOT_DIR/policy.md";      MODEL="claude-opus-4-8" ;;
-  exit)  POLICY="$BOT_DIR/exit-policy.md"; MODEL="claude-haiku-4-5-20251001" ;;
+  entry) POLICY="$BOT_DIR/policy.md";      MODEL="claude-opus-4-8";           RUN_TIMEOUT=600 ;;
+  exit)  POLICY="$BOT_DIR/exit-policy.md"; MODEL="claude-haiku-4-5-20251001"; RUN_TIMEOUT=300 ;;
   *) echo "[$STAMP] unknown task '$TASK'" >> "$DAYLOG"; exit 1 ;;
 esac
 
 READ_TOOLS="mcp__robinhood-trading__get_accounts,mcp__robinhood-trading__get_portfolio,mcp__robinhood-trading__get_equity_positions,mcp__robinhood-trading__get_equity_quotes,mcp__robinhood-trading__get_equity_historicals,mcp__robinhood-trading__get_equity_orders,mcp__robinhood-trading__get_equity_tradability,mcp__robinhood-trading__search,mcp__robinhood-trading__review_equity_order"
+# Entry only: web research for the FADE screen (trending meme stocks, recent IPOs, analogs).
+if [ "$TASK" = "entry" ]; then READ_TOOLS="$READ_TOOLS,WebSearch,WebFetch"; fi
 WRITE_TOOLS="mcp__robinhood-trading__place_equity_order,mcp__robinhood-trading__cancel_equity_order"
 
 PROMPT="$(cat "$POLICY")"
@@ -91,7 +94,7 @@ for c in /opt/homebrew/bin/timeout /opt/homebrew/bin/gtimeout /usr/local/bin/tim
 done
 
 if [ -n "$TIMEOUT_BIN" ]; then
-  "$TIMEOUT_BIN" 300 "$CLAUDE_BIN" -p "$PROMPT" \
+  "$TIMEOUT_BIN" "$RUN_TIMEOUT" "$CLAUDE_BIN" -p "$PROMPT" \
     --allowedTools "$TOOLS" \
     --mcp-config "$MCP_CONFIG" \
     --model "$MODEL" \
